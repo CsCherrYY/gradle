@@ -1,6 +1,8 @@
 commands: [{
     executable: gradle
-    args: build
+    # We temporarily disable deprecation warnings until we can update the gradle/gradle wrapper
+    # to the new version where projects created with build-init do not emit warnings.
+    args: "build --warning-mode=none"
     expected-output-file: build.out
     allow-disordered-output: true
 }]
