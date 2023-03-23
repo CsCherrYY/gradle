@@ -155,5 +155,4 @@ public interface FileAccessPermissions {
      */
     void unix(String permissions);
 
-    //TODO: deprecate the old "mode" methods
 }
