@@ -798,6 +798,52 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
+    )
+    def "key of nested map must be of type String"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.util.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @Nested
+                public Map<String, Options> getMapWithStringKey() {
+                    return Collections.singletonMap("key", new Options());
+                }
+
+                @Nested
+                public Map<Integer, Options> getMapWithNonStringKey() {
+                    return Collections.singletonMap(Integer.valueOf(0), new Options());
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=1")
+        assertValidationFailsWith([
+            error(nestedMapUnsupportedKeyType { type('MyTask').property("mapWithNonStringKey").keyType("java.lang.Integer") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
+        ])
+    }
+
     def "honors configured Java Toolchain to avoid compiled by a more recent version failure"() {
         def currentJdk = Jvm.current()
         def newerJdk = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJdk.javaVersion }
