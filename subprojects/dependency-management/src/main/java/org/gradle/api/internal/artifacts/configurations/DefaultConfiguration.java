@@ -228,7 +228,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private Set<ExcludeRule> parsedExcludeRules;
-    private boolean returnAllVariants = false;
 
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
@@ -310,6 +309,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
+        this.path = domainObjectContext.projectPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
@@ -347,7 +347,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(ResolveState.NOT_RESOLVED);
-        this.path = domainObjectContext.projectPath(name);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
@@ -993,6 +992,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allDependencies;
     }
 
+    @Override
+    public boolean hasDependencies() {
+        return !getAllDependencies().isEmpty();
+    }
+
+    /**
+     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
+     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
+     * the size of the graph to avoid maps resizing.
+     */
+    @Override
+    public int getEstimatedGraphSize() {
+        return (int) (512 * Math.log(getAllDependencies().size()));
+    }
+
     private synchronized void initAllDependencies() {
         if (allDependencies != null) {
             return;
@@ -1462,19 +1476,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void setReturnAllVariants(boolean returnAllVariants) {
-        if (!canBeMutated) {
-            throw new IllegalStateException("Configuration is unmodifiable");
-        }
-        this.returnAllVariants = returnAllVariants;
-    }
-
-    @Override
-    public boolean getReturnAllVariants() {
-        return this.returnAllVariants;
-    }
-
-    @Override
     public Configuration resolutionStrategy(Closure closure) {
         configure(closure, getResolutionStrategy());
         return this;
@@ -1796,7 +1797,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (!isSpecialCaseOfChangingUsage(usage, current)) {
             String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
             String changingUsage = usage + " was " + !current + " and is now " + current;
-            
+
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), changingUsage))
                     .withAdvice("Usage should be fixed upon creation.")
                     .willBeRemovedInGradle9()
@@ -1826,7 +1827,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * <ol>
      *     <li>While {#roleAtCreation} is {@code null}, we are still initializing, so we should NOT warn.</li>
      *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
-     *     <li>Configurations with a legacy role should NOT warn when changing usage, 
+     *     <li>Configurations with a legacy role should NOT warn when changing usage,
 since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
      *     <li>Setting consumable usage to false on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
      *     <li>All other usage changes should warn.</li>
