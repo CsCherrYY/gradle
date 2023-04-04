@@ -33,15 +33,10 @@ dependencies {
     conf 'org.test:projectA:1.0'
 }
 
-// implement Sync manually to make sure that task is never up-to-date
-task resolve {
-    doLast {
-        delete 'libs'
-        copy {
-            from configurations.conf
-            into 'libs'
-        }
-    }
+task resolve(type: Sync) {
+    def files = configurations.conf
+    from files
+    into 'libs'
 }
 """
     }
@@ -221,7 +216,6 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @ToBeFixedForConfigurationCache
     def "changes made by a rule are not cached"() {
         repository {
             'org.test:projectA:1.0'()
@@ -432,7 +426,6 @@ dependencies {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForConfigurationCache
     def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
         given:
         repository {
@@ -508,7 +501,6 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @ToBeFixedForConfigurationCache
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def 'rule can access PomModuleDescriptor for Maven component'() {
         given:
