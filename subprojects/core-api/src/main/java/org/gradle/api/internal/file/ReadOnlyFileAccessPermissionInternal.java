@@ -16,23 +16,16 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileAccessPermission;
 import org.gradle.api.file.FileAccessPermissions;
+import org.gradle.api.file.ReadOnlyFileAccessPermission;
 
-public interface FileAccessPermissionInternal extends FileAccessPermission, ReadOnlyFileAccessPermissionInternal {
-
-    /**
-     * Sets the user permission from a numeric Unix permission.
-     * See {@link FileAccessPermissions#unix(String)} for details,
-     * input value is equivalent to one of the three octal digits.
-     */
-    void fromUnixNumeric(int unixNumeric);
+public interface ReadOnlyFileAccessPermissionInternal extends ReadOnlyFileAccessPermission {
 
     /**
-     * Sets the user permission from a symbolic Unix permission.
+     * Converts the user permission to a numeric Unix permission.
      * See {@link FileAccessPermissions#unix(String)} for details,
-     * input value is equivalent to one of the three sets of symbol triplets.
+     * returned value is equivalent to one of the three octal digits.
      */
-    void fromUnixSymbolic(String unixSymbolic);
+    int toUnixNumeric(); // TODO: should this really be internal?
 
 }

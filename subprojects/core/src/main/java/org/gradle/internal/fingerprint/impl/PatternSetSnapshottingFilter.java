@@ -19,7 +19,12 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileAccessPermissions;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.DefaultReadOnlyFileAccessPermissions;
+import org.gradle.api.internal.file.ReadOnlyFileAccessPermissionsInternal;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
@@ -143,7 +148,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return stat.getUnixMode(getFile());
+            return ((ReadOnlyFileAccessPermissionsInternal) getReadOnlyPermissions().get()).toUnixNumeric();
+        }
+
+        @Override
+        public Provider<ReadOnlyFileAccessPermissions> getReadOnlyPermissions() {
+            int unixNumeric = stat.getUnixMode(getFile());
+            return Providers.of(new DefaultReadOnlyFileAccessPermissions(unixNumeric));
         }
     }
 
@@ -218,7 +229,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return stat.getUnixMode(path.toFile());
+            return ((ReadOnlyFileAccessPermissionsInternal) getReadOnlyPermissions().get()).toUnixNumeric();
+        }
+
+        @Override
+        public Provider<ReadOnlyFileAccessPermissions> getReadOnlyPermissions() {
+            int unixNumeric = stat.getUnixMode(path.toFile());
+            return Providers.of(new DefaultReadOnlyFileAccessPermissions(unixNumeric));
         }
     }
 }

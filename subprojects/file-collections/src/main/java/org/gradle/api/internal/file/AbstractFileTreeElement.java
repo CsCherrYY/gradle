@@ -19,6 +19,9 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileAccessPermissions;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -107,9 +110,13 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
 
     @Override
     public int getMode() {
-        return isDirectory()
-            ? FileSystem.DEFAULT_DIR_MODE
-            : FileSystem.DEFAULT_FILE_MODE;
+        return ((ReadOnlyFileAccessPermissionsInternal) getReadOnlyPermissions().get()).toUnixNumeric();
+    }
+
+    @Override
+    public Provider<ReadOnlyFileAccessPermissions> getReadOnlyPermissions() {
+        int unixNumeric = isDirectory() ? FileSystem.DEFAULT_DIR_MODE : FileSystem.DEFAULT_FILE_MODE;
+        return Providers.of(new DefaultReadOnlyFileAccessPermissions(unixNumeric));
     }
 
     @Contextual

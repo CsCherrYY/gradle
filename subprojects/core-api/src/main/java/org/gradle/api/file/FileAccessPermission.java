@@ -33,11 +33,15 @@ import org.gradle.api.provider.Property;
  * @since 8.2
  */
 @Incubating
-public interface FileAccessPermission {
+public interface FileAccessPermission extends ReadOnlyFileAccessPermission {
 
+    @Override
     Property<Boolean> getRead();
 
+    @Override
     Property<Boolean> getWrite();
 
+    @Override
     Property<Boolean> getExecute();
+
 }

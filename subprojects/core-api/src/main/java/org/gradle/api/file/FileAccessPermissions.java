@@ -47,16 +47,19 @@ import org.gradle.api.Incubating;
  * @since 8.2
  */
 @Incubating
-public interface FileAccessPermissions {
+public interface FileAccessPermissions extends ReadOnlyFileAccessPermissions { //todo: make usages read-only when possible
 
+    @Override
     FileAccessPermission getUser();
 
     void user(Action<? super FileAccessPermission> configureAction);
 
+    @Override
     FileAccessPermission getGroup();
 
     void group(Action<? super FileAccessPermission> configureAction);
 
+    @Override
     FileAccessPermission getOther();
 
     void other(Action<? super FileAccessPermission> configureAction);

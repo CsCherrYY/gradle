@@ -18,10 +18,10 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.DuplicatesStrategy;
-import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileAccessPermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -37,8 +37,8 @@ public interface CopySpecResolver {
     Integer getFileMode();
     @Nullable
     Integer getDirMode();
-    Provider<FileAccessPermissions> getFilePermissions();
-    Provider<FileAccessPermissions> getDirPermissions();
+    Provider<ReadOnlyFileAccessPermissions> getFileReadOnlyPermissions();
+    Provider<ReadOnlyFileAccessPermissions> getDirReadOnlyPermissions();
     boolean getIncludeEmptyDirs();
     String getFilteringCharset();
 

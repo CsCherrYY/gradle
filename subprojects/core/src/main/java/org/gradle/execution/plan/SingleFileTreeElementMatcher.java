@@ -17,7 +17,12 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ReadOnlyFileAccessPermissions;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.DefaultReadOnlyFileAccessPermissions;
+import org.gradle.api.internal.file.ReadOnlyFileAccessPermissionsInternal;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Stat;
@@ -124,7 +129,13 @@ public class SingleFileTreeElementMatcher {
 
         @Override
         public int getMode() {
-            return stat.getUnixMode(file);
+            return ((ReadOnlyFileAccessPermissionsInternal) getReadOnlyPermissions().get()).toUnixNumeric();
+        }
+
+        @Override
+        public Provider<ReadOnlyFileAccessPermissions> getReadOnlyPermissions() {
+            int unixNumeric = stat.getUnixMode(file);
+            return Providers.of(new DefaultReadOnlyFileAccessPermissions(unixNumeric));
         }
     }
 }

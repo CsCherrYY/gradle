@@ -15,7 +15,10 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.ReadOnlyFileAccessPermissions;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -77,7 +80,8 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
     }
 
     @Override
-    public int getMode() {
-        return stat.getUnixMode(file);
+    public Provider<ReadOnlyFileAccessPermissions> getReadOnlyPermissions() {
+        int unixNumeric = stat.getUnixMode(file);
+        return Providers.of(new DefaultReadOnlyFileAccessPermissions(unixNumeric));
     }
 }
