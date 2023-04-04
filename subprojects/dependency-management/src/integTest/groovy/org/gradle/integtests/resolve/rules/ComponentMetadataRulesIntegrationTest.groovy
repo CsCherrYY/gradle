@@ -669,11 +669,14 @@ dependencies {
     conf 'org.test:projectA:1.0'
 }
 
-resolve {
+task downloadRules {
+    def files = configurations.ruleDownloader
     doFirst {
-        configurations.ruleDownloader.resolve() // trigger resolution before rules are added
+        files.files // trigger resolution before rules are added
     }
 }
+
+resolve.dependsOn(downloadRules)
 
 """
 
